@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request
 import os
 import uuid
+from core.loader import load_plugins
 
 app = Flask(__name__)
+plugins = load_plugins()
+print(f"Loaded Plugins: {plugins}")
 
 
 @app.route("/", methods=["GET", "POST"])
