@@ -4,16 +4,120 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ConvertKit</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        flex-direction: column;
+      }
+      h1 {
+        margin-bottom: 20px;
+        font-size: 2em;
+      }
+      form {
+        background-color: #1e1e1e;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        width: 300px;
+        text-align: center;
+      }
+      button {
+        background-color: #007bff;
+        color: #ffffff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1em;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      p {
+        margin-top: 20px;
+        color: #cccccc;
+      }
+      .drop-zone {
+        border: 2px dashed #555;
+        border-radius: 8px;
+        padding: 40px 20px;
+        margin-bottom: 15px;
+        background-color: #2a2a2a;
+        color: #cccccc;
+        cursor: pointer;
+        transition: border-color 0.3s;
+        position: relative;
+      }
+      .drop-zone:hover,
+      .drop-zone.dragover {
+        border-color: #007bff;
+        background-color: #333;
+      }
+      .drop-zone p {
+        margin: 0;
+        font-size: 1.1em;
+      }
+      input[type="file"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
-    <h1>convert file</h1>
+    <h1>ConvertKit</h1>
     <form action="/" method="POST" enctype="multipart/form-data">
-      <input type="file" name="file" required />
+      <div class="drop-zone" id="dropZone">
+        <p>Drag & drop a file here or click to select</p>
+        <input type="file" name="file" id="fileInput" required />
+      </div>
       <button type="submit">Upload</button>
     </form>
 
     {% if message %}
     <p>{{ message }}</p>
     {% endif %}
+
+    <script>
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("fileInput");
+
+      dropZone.addEventListener("click", () => fileInput.click());
+
+      dropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropZone.classList.remove("dragover");
+        const files = e.dataTransfer.files;
+        if (files.length) {
+          fileInput.files = files;
+          dropZone.querySelector("p").textContent = files[0].name;
+        }
+      });
+
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files.length) {
+          dropZone.querySelector("p").textContent = fileInput.files[0].name;
+        }
+      });
+    </script>
   </body>
 </html>

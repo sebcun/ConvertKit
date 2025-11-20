@@ -43,7 +43,7 @@ def convert():
     plugin = next(p for p in plugins if p["module"].__name__ == module_name)
     output_file = plugin["module"].convert(file_path)
 
-    name, ext_in = os.path.splittext(original_filename)
+    name, ext_in = os.path.splitext(original_filename)
     ext_in = ext_in.lstrip(".")
     output_ext = plugin["output"]
 
@@ -52,9 +52,7 @@ def convert():
     else:
         attachment_filename = f"{name}.{output_ext}"
 
-    return send_file(
-        output_file, as_attachment=True, attachment_filename=attachment_filename
-    )
+    return send_file(output_file, as_attachment=True, download_name=attachment_filename)
 
 
 if __name__ == "__main__":
