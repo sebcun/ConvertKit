@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ConvertKit</title>
+  </head>
+  <body>
+    <h1>Select Conversion</h1>
+
+    {% if plugins %}
+    <form action="/convert" method="POST">
+      <input hidden name="file_path" value="{{ file_path }}" />
+
+      <select name="module_name">
+        {% for p in plugins %}
+        <option value="{{ p.module.__name__ }}">
+          {{p.input}} -> {{p.output}}
+        </option>
+        {% endfor %}
+      </select>
+
+      <button type="submit">Convert</button>
+    </form>
+    {% endif %}
+  </body>
+</html>
