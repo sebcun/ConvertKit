@@ -24,7 +24,12 @@ def index():
 
         available = [p for p in plugins if p["input"] == ext]
 
-        return render_template("result.html", file_path=path, plugins=available)
+        return render_template(
+            "result.html",
+            file_path=path,
+            plugins=available,
+            original_filename=uploaded.filename,
+        )
 
     return render_template("index.html")
 
@@ -33,11 +38,23 @@ def index():
 def convert():
     file_path = request.form["file_path"]
     module_name = request.form["module_name"]
+    original_filename = request.form["original_filename"]
 
     plugin = next(p for p in plugins if p["module"].__name__ == module_name)
     output_file = plugin["module"].convert(file_path)
 
-    return send_file(output_file, as_attachment=True)
+    name, ext_in = os.path.splittext(original_filename)
+    ext_in = ext_in.lstrip(".")
+    output_ext = plugin["output"]
+
+    if output_ext == ext_in:
+        attachment_filename = f"{name}_converted.{output_ext}"
+    else:
+        attachment_filename = f"{name}.{output_ext}"
+
+    return send_file(
+        output_file, as_attachment=True, attachment_filename=attachment_filename
+    )
 
 
 if __name__ == "__main__":

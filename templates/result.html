@@ -9,6 +9,7 @@
     {% if plugins %}
     <form action="/convert" method="POST">
       <input hidden name="file_path" value="{{ file_path }}" />
+      <input hidden name="original_filename" value="{{ original_filename }}" />
 
       <select name="module_name">
         {% for p in plugins %}
