@@ -37,6 +37,20 @@
         color: #ffffff;
         font-size: 1em;
       }
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        color: #ccc;
+        font-size: 0.9em;
+      }
+      .checkbox-container input {
+        margin-right: 10px;
+        accent-color: #007bff;
+        width: 16px;
+        height: 16px;
+      }
       button {
         background-color: #007bff;
         color: #ffffff;
@@ -66,6 +80,11 @@
         </option>
         {% endfor %}
       </select>
+
+      <div class="checkbox-container">
+        <input type="checkbox" id="get_link" name="get_link" value="true" />
+        <label for="get_link">Get Download Link</label>
+      </div>
 
       <button type="submit">Convert</button>
     </form>
