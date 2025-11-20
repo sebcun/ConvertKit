@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ConvertKit</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #ffffff;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        flex-direction: column;
+      }
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #1e1e1e;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        width: 90%;
+      }
+      h1 {
+        color: #ffffff;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 2em;
+      }
+      h2 {
+        color: #007bff;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 5px;
+      }
+      ul,
+      ol {
+        margin-left: 20px;
+      }
+      pre {
+        background-color: #2a2a2a;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+        border: 1px solid #555;
+        color: #ffffff;
+      }
+      code {
+        background-color: #2a2a2a;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-family: "Courier New", monospace;
+        color: #ffffff;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      .note {
+        background-color: #333;
+        border: 1px solid #555;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      p,
+      li {
+        color: #cccccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>How to Create a Plugin for ConvertKit</h1>
+      <p>
+        This tutorial guides you through creating a custom plugin for
+        ConvertKit.
+      </p>
+
+      <h2>Step 1: Understand the Plugin Structure</h2>
+      <p>
+        Plugins are Python modules that define a conversion function. Each
+        plugin must be placed in the <code>plugins/</code> directory and follow
+        this structure:
+      </p>
+      <ul>
+        <li>
+          <strong>Input Format:</strong> The file extension the plugin accepts
+          (e.g., 'jpg', 'pdf').
+        </li>
+        <li>
+          <strong>Output Format:</strong> The file extension the plugin produces
+          (e.g., 'bmp', 'docx').
+        </li>
+        <li>
+          <strong>Convert Function:</strong> A function named
+          <code>convert(file_path)</code> that takes the input file path and
+          returns the output file path.
+        </li>
+      </ul>
+
+      <h2>Step 2: Create Your Plugin Module</h2>
+      <p>
+        Create a new Python file in the <code>plugins/</code> directory, e.g.,
+        <code>my_plugin.py</code>. Here's a template:
+      </p>
+      <pre><code>
+# plugins/my_plugin.py
+from PIL import Image
+
+input_format = "jpg"
+output_format = "bmp"
+
+def convert(file_path):
+    img = Image.open(file_path)
+    new_path = file_path.replace(".jpg", "_converted.bmp")
+    img.save(new_path, "BMP")
+    return new_path
+        </code></pre>
+
+      <h2>Step 3: Test Your Plugin Locally</h2>
+      <p>
+        Run the Flask app and test your plugin by uploading a file of the input
+        type. Ensure the conversion works as expected.
+      </p>
+
+      <h2>Step 4: Contribute via Pull Request</h2>
+      <p>To add your plugin to the official repository:</p>
+      <ol>
+        <li>
+          Fork the repository at
+          <a href="https://github.com/sebcun/ConvertKit" target="_blank"
+            >https://github.com/sebcun/ConvertKit</a
+          >.
+        </li>
+        <li>
+          Clone your fork locally:
+          <code>git clone https://github.com/yourusername/ConvertKit.git</code>
+        </li>
+        <li>Create a new branch: <code>git checkout -b add-my-plugin</code></li>
+        <li>Add your plugin file to the <code>plugins/</code> directory.</li>
+        <li>
+          Commit your changes:
+          <code
+            >git add . && git commit -m "Add my_plugin for jpg to bmp
+            conversion"</code
+          >
+        </li>
+        <li>Push to your fork: <code>git push origin add-my-plugin</code></li>
+        <li>
+          Open a pull request on GitHub, describing your plugin and its
+          functionality.
+        </li>
+      </ol>
+
+      <div class="note">
+        <h2>Additional Notes</h2>
+        <ul>
+          <li>
+            Check existing plugins in the <code>plugins/</code> directory for
+            examples.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
