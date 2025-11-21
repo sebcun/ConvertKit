@@ -15,6 +15,7 @@ def load_plugins():
 
             plugin_registry.append(
                 {
+                    "name": module.title,
                     "input": module.input_format,
                     "output": module.output_format,
                     "module": module,

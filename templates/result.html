@@ -75,9 +75,7 @@
 
       <select name="module_name">
         {% for p in plugins %}
-        <option value="{{ p.module.__name__ }}">
-          {{p.input}} -> {{p.output}}
-        </option>
+        <option value="{{ p.module.__name__ }}">{{p.name}}</option>
         {% endfor %}
       </select>
 

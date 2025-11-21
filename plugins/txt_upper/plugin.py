@@ -1,3 +1,8 @@
+# TITLE: TXT to TXT (uppercase)
+# AUTHOR: @sebastian
+
+
+title = "TXT to TXT (uppercase)"
 input_format = "txt"
 output_format = "txt"
 

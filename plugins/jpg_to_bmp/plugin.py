@@ -1,5 +1,9 @@
+# TITLE: JPG to BPM
+# AUTHOR: @sebastian
+
 from PIL import Image
 
+title = "JPG to BMP"
 input_format = "jpg"
 output_format = "bmp"
 

@@ -1,5 +1,9 @@
+# TITLE: PNG to JPG
+# AUTHOR: @sebastian
+
 from PIL import Image
 
+title = "PNG to JPG"
 input_format = "png"
 output_format = "jpg"
 
