@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, after_this_request
 import os
 import uuid
 import shutil
@@ -81,8 +81,24 @@ def convert():
         stored_files[file_uuid] = {"path": stored_path, "filename": attachment_filename}
         save_stored_files(stored_files)
 
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        if os.path.exists(output_file) and output_file != stored_path:
+            os.remove(output_file)
+
         download_link = request.host_url + f"download/{file_uuid}"
         return render_template("link.html", download_link=download_link)
+
+    @after_this_request
+    def cleanup(response):
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            if os.path.exists(output_file):
+                os.remove(output_file)
+        except Exception as e:
+            print(f"Error cleaning up files: {e}")
+        return response
 
     return send_file(output_file, as_attachment=True, download_name=attachment_filename)
 
