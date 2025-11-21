@@ -89,18 +89,25 @@ def convert():
         download_link = request.host_url + f"download/{file_uuid}"
         return render_template("link.html", download_link=download_link)
 
-    @after_this_request
-    def cleanup(response):
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            if os.path.exists(output_file):
-                os.remove(output_file)
-        except Exception as e:
-            print(f"Error cleaning up files: {e}")
-        return response
+    with open(output_file, "rb") as f:
+        file_data = f.read()
 
-    return send_file(output_file, as_attachment=True, download_name=attachment_filename)
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        if os.path.exists(output_file):
+            os.remove(output_file)
+    except Exception as e:
+        print(f"Error cleaning up files: {e}")
+
+    from io import BytesIO
+
+    return send_file(
+        BytesIO(file_data),
+        as_attachment=True,
+        download_name=attachment_filename,
+        mimetype="application/octet-stream",
+    )
 
 
 @app.route("/download/<file_id>")
