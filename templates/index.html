@@ -14,7 +14,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
         flex-direction: column;
       }
       h1 {
@@ -37,9 +37,14 @@
         border-radius: 4px;
         cursor: pointer;
         font-size: 1em;
+        width: 100%;
       }
       button:hover {
         background-color: #0056b3;
+      }
+      button:disabled {
+        background-color: #555;
+        cursor: not-allowed;
       }
       p {
         margin-top: 20px;
@@ -72,25 +77,78 @@
         height: 100%;
         cursor: pointer;
       }
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        background-color: #2a2a2a;
+        color: #ffffff;
+        font-size: 1em;
+      }
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        color: #ccc;
+        font-size: 0.9em;
+      }
+      .checkbox-container input {
+        margin-right: 10px;
+        accent-color: #007bff;
+        width: 16px;
+        height: 16px;
+      }
+      .conversion-options {
+        display: none;
+        margin-bottom: 15px;
+      }
+      .error-message {
+        color: #ff4444;
+        margin-top: 15px;
+      }
+      .success-message {
+        color: #44ff44;
+        margin-top: 15px;
+      }
     </style>
   </head>
   <body>
     <h1>ConvertKit</h1>
-    <form action="/" method="POST" enctype="multipart/form-data">
+    <form id="convertForm" enctype="multipart/form-data">
       <div class="drop-zone" id="dropZone">
         <p>Drag & drop a file here or click to select</p>
         <input type="file" name="file" id="fileInput" required />
       </div>
-      <button type="submit">Upload</button>
+
+      <div class="conversion-options" id="conversionOptions">
+        <select name="module_name" id="pluginSelect">
+          <option value="">Select conversion type</option>
+        </select>
+
+        <div class="checkbox-container">
+          <input type="checkbox" id="get_link" name="get_link" value="true" />
+          <label for="get_link">Get Download Link</label>
+        </div>
+      </div>
+
+      <button type="submit" id="convertButton" disabled>Convert</button>
     </form>
 
-    {% if message %}
-    <p>{{ message }}</p>
-    {% endif %}
+    <p id="message"></p>
 
     <script>
       const dropZone = document.getElementById("dropZone");
       const fileInput = document.getElementById("fileInput");
+      const conversionOptions = document.getElementById("conversionOptions");
+      const pluginSelect = document.getElementById("pluginSelect");
+      const convertButton = document.getElementById("convertButton");
+      const convertForm = document.getElementById("convertForm");
+      const message = document.getElementById("message");
+
+      const plugins = {{ plugins | tojson }};
 
       dropZone.addEventListener("click", () => fileInput.click());
 
@@ -109,13 +167,96 @@
         const files = e.dataTransfer.files;
         if (files.length) {
           fileInput.files = files;
-          dropZone.querySelector("p").textContent = files[0].name;
+          handleFileSelection();
         }
       });
 
-      fileInput.addEventListener("change", () => {
-        if (fileInput.files.length) {
-          dropZone.querySelector("p").textContent = fileInput.files[0].name;
+      fileInput.addEventListener("change", handleFileSelection);
+
+      pluginSelect.addEventListener("change", () => {
+        convertButton.disabled = !pluginSelect.value;
+      });
+
+      function handleFileSelection() {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        dropZone.querySelector("p").textContent = file.name;
+
+        const ext = file.name.split(".").pop().toLowerCase();
+        const availablePlugins = plugins.filter(p => p.input === ext);
+
+        pluginSelect.innerHTML = '<option value="">Select conversion type</option>';
+
+        if (availablePlugins.length === 0) {
+          message.textContent = "No conversion available for this file type";
+          message.className = "error-message";
+          conversionOptions.style.display = "none";
+          convertButton.disabled = true;
+        } else {
+          message.textContent = "";
+          availablePlugins.forEach(p => {
+            const option = document.createElement("option");
+            option.value = p.module;
+            option.textContent = p.name;
+            pluginSelect.appendChild(option);
+          });
+          conversionOptions.style.display = "block";
+          convertButton.disabled = true;
+        }
+      }
+
+      convertForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(convertForm);
+
+        convertButton.disabled = true;
+        convertButton.textContent = "Converting...";
+        message.textContent = "";
+
+        try {
+          const response = await fetch("/convert", {
+            method: "POST",
+            body: formData
+          });
+
+          if (response.headers.get("content-type")?.includes("application/json")) {
+            const data = await response.json();
+            if (data.download_link) {
+              message.innerHTML = `<a href="${data.download_link}" target="_blank" style="color: #007bff;">Download File</a>`;
+              message.className = "success-message";
+            }
+          } else {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            const contentDisposition = response.headers.get("content-disposition");
+            const filename = contentDisposition
+              ? contentDisposition.split("filename=")[1].replace(/"/g, "")
+              : "converted_file";
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            message.textContent = "File converted and downloaded successfully!";
+            message.className = "success-message";
+          }
+
+          fileInput.value = "";
+          dropZone.querySelector("p").textContent = "Drag & drop a file here or click to select";
+          conversionOptions.style.display = "none";
+          pluginSelect.innerHTML = '<option value="">Select conversion type</option>';
+          document.getElementById("get_link").checked = false;
+
+        } catch (error) {
+          message.textContent = "Error converting file. Please try again.";
+          message.className = "error-message";
+        } finally {
+          convertButton.disabled = false;
+          convertButton.textContent = "Convert";
         }
       });
     </script>

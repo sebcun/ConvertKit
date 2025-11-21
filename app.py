@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, after_this_request
+from flask import Flask, render_template, request, send_file, jsonify
 import os
 import uuid
 import shutil
@@ -26,44 +26,43 @@ def save_stored_files(stored_files):
 
 stored_files = load_stored_files()
 
-
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    if request.method == "POST":
-        uploaded = request.files.get("file")
-
-        if not uploaded or uploaded.filename == "":
-            return render_template("index.html", message="No file selected")
-
-        ext = uploaded.filename.split(".")[-1]
-
-        filename = f"{uuid.uuid4()}.{ext}"
-        path = os.path.join("uploads", filename)
-        uploaded.save(path)
-
-        available = [p for p in plugins if p["input"] == ext]
-
-        return render_template(
-            "result.html",
-            file_path=path,
-            plugins=available,
-            original_filename=uploaded.filename,
-        )
-
-    return render_template("index.html")
+    plugins_data = [
+        {
+            "input": p["input"],
+            "output": p["output"],
+            "name": p["name"],
+            "module": p["module"].__name__,
+        }
+        for p in plugins
+    ]
+    return render_template("index.html", plugins=plugins_data)
 
 
 @app.route("/convert", methods=["POST"])
 def convert():
-    file_path = request.form["file_path"]
-    module_name = request.form["module_name"]
-    original_filename = request.form["original_filename"]
+    uploaded = request.files.get("file")
+    module_name = request.form.get("module_name")
     get_link = request.form.get("get_link") == "true"
 
-    plugin = next(p for p in plugins if p["module"].__name__ == module_name)
-    output_file = plugin["module"].convert(file_path)
+    if not uploaded or uploaded.filename == "":
+        return jsonify({"error": "No file selected"}), 400
 
-    name, ext_in = os.path.splitext(original_filename)
+    ext = uploaded.filename.split(".")[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    path = os.path.join("uploads", filename)
+    uploaded.save(path)
+
+    plugin = next((p for p in plugins if p["module"].__name__ == module_name), None)
+    if not plugin:
+        if os.path.exists(path):
+            os.remove(path)
+        return jsonify({"error": "Invalid plugin"}), 400
+
+    output_file = plugin["module"].convert(path)
+
+    name, ext_in = os.path.splitext(uploaded.filename)
     ext_in = ext_in.lstrip(".")
     output_ext = plugin["output"]
 
@@ -81,20 +80,20 @@ def convert():
         stored_files[file_uuid] = {"path": stored_path, "filename": attachment_filename}
         save_stored_files(stored_files)
 
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        if os.path.exists(path):
+            os.remove(path)
         if os.path.exists(output_file) and output_file != stored_path:
             os.remove(output_file)
 
         download_link = request.host_url + f"download/{file_uuid}"
-        return render_template("link.html", download_link=download_link)
+        return jsonify({"download_link": download_link})
 
     with open(output_file, "rb") as f:
         file_data = f.read()
 
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        if os.path.exists(path):
+            os.remove(path)
         if os.path.exists(output_file):
             os.remove(output_file)
     except Exception as e:
@@ -108,6 +107,7 @@ def convert():
         download_name=attachment_filename,
         mimetype="application/octet-stream",
     )
+                        
 
 
 @app.route("/download/<file_id>")
