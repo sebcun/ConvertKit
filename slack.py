@@ -314,7 +314,7 @@ def handle_conversion_selection(ack, body, client):
             channel=channel_id,
             file=output_file,
             filename=attachment_filename,
-            initial_comment=f"✅ Converted *{original_filename}* ({plugin['input']} → {plugin['output']})"
+            initial_comment=f"✅ <@{body['user']['id']}> - Converted *{original_filename}* ({plugin['input']} → {plugin['output']})"
         )
         
         if os.path.exists(file_path):
@@ -363,7 +363,7 @@ def handle_conversions_command(ack, command, client):
             conversions_dict[input_fmt] = []
         conversions_dict[input_fmt].append(output_fmt)
     
-    text_lines = ["*📋 Available Conversions*\n"]
+    text_lines = ["*Available Conversions*\n"]
     for input_fmt in sorted(conversions_dict.keys()):
         outputs = ", ".join(sorted(conversions_dict[input_fmt]))
         text_lines.append(f"• *{input_fmt}* → {outputs}")

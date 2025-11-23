@@ -68,7 +68,7 @@ class ConversionSelect(discord.ui.Select):
                 attachment_filename = f"{name}.{output_ext}"
 
             await interaction.channel.send(
-                f"✅ Converted **{self.original_filename}** ({plugin['input']} → {plugin['output']})",
+                f"✅ {interaction.user.mention} - Converted **{self.original_filename}** ({plugin['input']} → {plugin['output']})",
                 file=discord.File(output_file, filename=attachment_filename),
             )
 
