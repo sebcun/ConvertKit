@@ -131,7 +131,7 @@ async def convert(interaction: discord.Interaction, file: discord.Attachment):
 
     view = ConversionView(file_path, file.filename, compatible_plugins)
     await interaction.response.send_message(
-        f"📁 **{file.filename}** uploaded! Choose a conversion:",
+        f"**{file.filename}** uploaded! Choose a conversion:",
         view=view,
         ephemeral=True,
     )
