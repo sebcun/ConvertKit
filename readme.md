@@ -4,8 +4,8 @@ A file conversion tool available as a website, Discord bot, and Slack bot. Easil
 
 ## Demo
 
-[Live Demo (website)]()
-[Discord Bot Demo]()
+[Live Demo (website)](https://convertkit.sebcun.com)
+[Discord Bot Demo](https://streamable.com/rqkvxc)
 [Slack Bot Demo]()
 
 ## Setup
