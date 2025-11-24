@@ -108,7 +108,76 @@ def convert():
         mimetype="application/octet-stream",
     )
                         
+@app.route("/api/convert", methods=["POST"])
+def api_convert():
+    uploaded = request.files.get("file")
+    plugin_name = request.form.get("plugin")
 
+    if not uploaded or uploaded.filename == "":
+        return jsonify({"error": "No file provided"}), 400
+
+    if not plugin_name:
+        return jsonify({"error": "No plugin specified"}), 400
+
+    plugin = next((p for p in plugins if plugin_name in p["module"].__name__), None)
+    if not plugin:
+        available_plugins = [p["module"].__name__.split(".")[-2] for p in plugins]
+        return jsonify({
+            "error": "Invalid plugin",
+            "available_plugins": available_plugins
+        }), 400
+
+    ext = uploaded.filename.split(".")[-1].lower()
+    if ext != plugin["input"].lower():
+        return jsonify({
+            "error": f"Invalid input format. Expected {plugin['input']}, got {ext}"
+        }), 400
+
+    filename = f"{uuid.uuid4()}.{ext}"
+    path = os.path.join("uploads", filename)
+    os.makedirs("uploads", exist_ok=True)
+    uploaded.save(path)
+
+    try:
+        output_file = plugin["module"].convert(path)
+
+        with open(output_file, "rb") as f:
+            file_data = f.read()
+
+        name, _ = os.path.splitext(uploaded.filename)
+        output_ext = plugin["output"]
+        attachment_filename = f"{name}.{output_ext}"
+
+        if os.path.exists(path):
+            os.remove(path)
+        if os.path.exists(output_file):
+            os.remove(output_file)
+
+        return send_file(
+            BytesIO(file_data),
+            as_attachment=True,
+            download_name=attachment_filename,
+            mimetype="application/octet-stream",
+        )
+
+    except Exception as e:
+        if os.path.exists(path):
+            os.remove(path)
+        return jsonify({"error": f"Conversion failed: {str(e)}"}), 500
+
+
+@app.route("/api/plugins", methods=["GET"])
+def api_plugins():
+    plugins_data = [
+        {
+            "plugin": p["module"].__name__.split(".")[-2],
+            "name": p["name"],
+            "input_format": p["input"],
+            "output_format": p["output"],
+        }
+        for p in plugins
+    ]
+    return jsonify({"plugins": plugins_data})
 
 @app.route("/download/<file_id>")
 def download(file_id):
